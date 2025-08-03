@@ -169,6 +169,7 @@ class DDPGAgent:
  
         self.replay_buffer = PrioritizedReplayBuffer(buffer_size)
         self.noise = GaussianNoise(action_dim)
+        #self.noise = OUNoise(action_dim)
 
         self.gamma = gamma
         self.tau = tau
@@ -185,7 +186,10 @@ class DDPGAgent:
     def select_action(self, state, add_noise=True):
         state_t = T.FloatTensor(state).unsqueeze(0).to(self.device)
         action = self.actor(state_t).squeeze(0).detach().cpu().numpy()
+        #print(f"original action : {action}")
         if add_noise:action = np.clip(action + self.noise.sample(), -1, 1)
+        #else: action += np.random.normal(0,0.05, size=action.shape)
+        #print(f"action after noise: {action}")
         return action
     
     def store_transition(self, state, action, reward, next_state, terminated, truncated):
@@ -295,6 +299,16 @@ class DDPGAgent:
         if evaluate:
             self.actor.eval()
             self.critic.eval()
+    
+    def evaluate_q(self, state, action):
+        # state: np.array of shape (state_dim,)
+        # action: np.array of shape (action_dim,)
+        self.critic.eval()
+        state_t = T.FloatTensor(state).unsqueeze(0).to(self.device)   # shape (1, state_dim)
+        action_t = T.FloatTensor(action).unsqueeze(0).to(self.device) # shape (1, action_dim)
+        with T.no_grad():
+            q = self.critic(state_t, action_t)
+        return q.item() # Return as scalar (float)
 
     def get_loss_history(self):
         return self.actor_losses, self.critic_losses
@@ -307,7 +321,7 @@ class DDPGAgent:
         return (c[k:] - c[:-k]) / k
     
 # Ornstein-Uhlenbeck noise for exploration
-""" class OUNoise:
+class OUNoise:
     def __init__(self, action_dim, mu=0, theta=0.15, sigma=0.2):
         self.action_dim = action_dim
         self.mu = mu
@@ -323,11 +337,11 @@ class DDPGAgent:
         x = self.state
         dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(self.action_dim)
         self.state = x + dx
-        return self.state """
+        return self.state
 
 #Gaussian noise for exploration
 class GaussianNoise:
-    def __init__(self, action_dim, initial_scale=0.6, min_scale=0.05, decay_rate=0.999995):
+    def __init__(self, action_dim, initial_scale=0.9, min_scale=0.05, decay_rate=0.99997):
         self.action_dim = action_dim
         self.scale = initial_scale
         self.min_scale = min_scale

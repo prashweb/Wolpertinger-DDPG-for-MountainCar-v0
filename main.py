@@ -18,7 +18,7 @@ already provided (DDPGAgent, networks, replay-buffer, …).  Put both
 files in the same folder or concatenate them.
 """
 
-import gymnasium as gym
+import gym
 import numpy as np
 import torch as T
 from collections import deque

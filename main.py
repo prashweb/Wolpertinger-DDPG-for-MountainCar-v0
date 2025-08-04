@@ -11,11 +11,7 @@ range [-1, 1].  We wrap the agent with a Wolpertinger policy that
          [ 0.],            # env action 1  (no push)
          [ 1.]]),          # env action 2  (push right)
 3. evaluates those candidates with the critic and
-4. executes / stores the best one.
-
-The code below is self-contained apart from the snippet the user
-already provided (DDPGAgent, networks, replay-buffer, …).  Put both
-files in the same folder or concatenate them.
+4. executes / stores the best one
 """
 
 import gym
@@ -94,7 +90,7 @@ def train_mountaincar(
         render:   bool          = False,
         seed:     int           = 1):
 
-    env = gym.make('MountainCar-v0')
+    env = gym.make('MountainCar-v0', render_mode='human')
     env.reset(seed=seed)
     np.random.seed(seed); T.manual_seed(seed)
 
@@ -154,4 +150,4 @@ def train_mountaincar(
 
 # ════════════════════════════════════════════════════════════════════════
 if __name__ == '__main__':
-    train_mountaincar(episodes=600, render=False)
+    train_mountaincar(episodes=600, render=True)
